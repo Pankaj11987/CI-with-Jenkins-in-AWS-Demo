@@ -1,25 +1,59 @@
 pipeline {
-   agent any 
-  environment {
-    PROJECT = 'SL-Kub-Pankaj'
-    CLUSTER_NAME = 'SL-Kub-Pankaj_Cluster'
-    CLUSTER_ZONE = 'us-east1-d'
-    CREDENTILS_ID = 'SL-Kub-Pankaj'
-  }
-     stage('Deploy Dev') {
-       steps{
-        echo "Deployment is in progress"
-        sh ls-ltr
-        sh("sed -i 's/tagversion/${env.BUILD_ID}/g' deployment.yaml")
-        step([$class: 'KubernetesEngineBuilder',
-        namespace: "${env.BRANCH_NAME}", 
-        projectId: env.PROJECT, 
-        clusterName: env.CLUSTER, 
-        zone: env.CLUSTER_ZONE, 
-        manifestPattern: 'k8s/services', 
-        credentialsId: env.JENKINS_CRED, 
-        verifyDeployments: false])
-        echo "Deployment Completed Successfully"
-                          }
-}
+ agent any
+ environment {
+ PROJECT = 'pankaj-superleague-devops'
     
+ CLUSTER_NAME = 'sl-kub-pankaj_cluster'
+    
+ CLUSTER_ZONE = 'us-east1-d'
+    
+ CREDENTILS_ID = 'sl-kub-pankaj'
+ }
+ stages {
+ stage("Checkout code") {
+ steps {
+ checkout scm
+ }
+ }
+ stage("Build") {
+ steps {
+ echo "cleaning and packaging"
+ sh 'mvn clean package'
+ }
+ }
+ stage("Test") {
+ steps {
+ echo "Testing"
+ sh 'mvn test'
+ }
+ }
+ stage("Build image") {
+ steps {
+ script {
+ myapp = docker.build("rahulk2020/k8image:${env.BUILD_ID}")
+ }
+ }
+ }
+ stage("Push image") {
+ steps {
+ script {
+ docker.withRegistry('https://registry.hub.docker.com', 'Docker-Hub') {
+ myapp.push("${env.BUILD_ID}")
+ }
+ }
+ }
+ }
+ stage('Deploy to GKE') {
+ steps{
+ echo "Deployment started"
+ sh 'ls -ltr'
+ sh 'pwd'
+ sh "sed -i 's/tagversion/${env.BUILD_ID}/g' deployment.yaml"
+ step([$class: 'KubernetesEngineBuilder', projectId: env.PROJECT_ID, clusterName: env.CLUSTER_NAME,
+location: env.LOCATION, manifestPattern: 'deployment.yaml', credentialsId: env.CREDENTIALS_ID, verifyDeployments:
+true])
+ echo "Deployment Finished"
+ }
+ }
+ }
+}
