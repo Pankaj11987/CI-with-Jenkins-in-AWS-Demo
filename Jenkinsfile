@@ -48,7 +48,7 @@ pipeline {
  echo "Deployment started"
  sh 'ls -ltr'
  sh 'pwd'
- sh "sed -i 's/tagversion/${env.BUILD_ID}/g' deployment.yaml"
+ sh "sed -i 's/tagversion/${env.BUILD_ID}/g' Deployment.yaml"
  echo "Deployment Finished"
  }
  }
