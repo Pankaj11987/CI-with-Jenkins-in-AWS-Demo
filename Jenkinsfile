@@ -3,7 +3,7 @@ pipeline {
  environment {
  PROJECT = 'pankaj-superleague-devops'
     
- CLUSTER_NAME = 'sl-kub-pankaj_cluster'
+ CLUSTER_NAME = 'sl-kub-pankaj-cluster'
     
  CLUSTER_ZONE = 'us-east1-d'
     
